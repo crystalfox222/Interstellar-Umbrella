@@ -1,0 +1,432 @@
+CREATE TABLE cosmic_ray_data (
+    timestamp DATE NOT NULL,
+    fractional DOUBLE PRECISION,
+    uncor_count INTEGER,
+    cor_count INTEGER,
+    pressure_mbar DOUBLE PRECISION
+);
+
+CREATE TABLE uv_flux_data (
+    flux_date DATE,
+    flux_time TIME,
+    flux_julian DOUBLE PRECISION,
+    flux_carrington DOUBLE PRECISION,
+    obs_flux DOUBLE PRECISION,
+    adj_flux DOUBLE PRECISION,
+    flux_ursi DOUBLE PRECISION
+);
+
+CREATE TABLE sunspot_data (
+    year INT,
+    month INT,
+    day INT,
+    decimal_year NUMERIC(7,3),
+    sunspot_number INT,
+    std_dev NUMERIC,
+    num_obs INT,
+    definitive BOOLEAN
+);
+
+CREATE TABLE solar_flux_data (
+    date DATE,
+    adj_solar_flux NUMERIC,
+    obs_solar_flux NUMERIC
+);
+
+CREATE TABLE ephemeris_data (
+planet TEXT,
+et DOUBLE PRECISION,
+date TEXT,
+x DOUBLE PRECISION,
+y DOUBLE PRECISION,
+z DOUBLE PRECISION,
+vx DOUBLE PRECISION,
+vy DOUBLE PRECISION,
+vz DOUBLE PRECISION,
+distance_from_sun DOUBLE PRECISION,
+velocity_mag DOUBLE PRECISION
+) PARTITION BY LIST (planet);
+
+
+CREATE TABLE ephemeris_mercury PARTITION OF ephemeris_data FOR VALUES IN ('Mercury');
+CREATE TABLE ephemeris_venus PARTITION OF ephemeris_data FOR VALUES IN ('Venus');
+CREATE TABLE ephemeris_earth PARTITION OF ephemeris_data FOR VALUES IN ('Earth');
+CREATE TABLE ephemeris_mars PARTITION OF ephemeris_data FOR VALUES IN ('Mars');
+CREATE TABLE ephemeris_jupiter PARTITION OF ephemeris_data FOR VALUES IN ('Jupiter');
+CREATE TABLE ephemeris_saturn PARTITION OF ephemeris_data FOR VALUES IN ('Saturn');
+CREATE TABLE ephemeris_uranus PARTITION OF ephemeris_data FOR VALUES IN ('Uranus');
+CREATE TABLE ephemeris_neptune PARTITION OF ephemeris_data FOR VALUES IN ('Neptune');
+CREATE TABLE ephemeris_pluto PARTITION OF ephemeris_data FOR VALUES IN ('Pluto');
+
+CREATE TABLE planet_static_data (
+    planet_name TEXT PRIMARY KEY,
+
+    -- General
+    mass_kg DOUBLE PRECISION,
+    radius_km DOUBLE PRECISION,
+    surface_gravity_m_s2 DOUBLE PRECISION,
+    albedo DOUBLE PRECISION,
+    mean_density_kg_m3 DOUBLE PRECISION,
+    orbital_period_days DOUBLE PRECISION,
+    rotation_period_hours DOUBLE PRECISION,
+    axial_tilt_deg DOUBLE PRECISION,
+    surface_roughness DOUBLE PRECISION,
+    semi_major_axis_au DOUBLE PRECISION,
+    obliquity_variation_range DOUBLE PRECISION,
+    sidereal_day_hours DOUBLE PRECISION,
+    electric_field_strength DOUBLE PRECISION,
+    charged_particle_flux DOUBLE PRECISION,
+    surface_type_dominance TEXT,
+
+    -- Wind
+    avg_surface_pressure DOUBLE PRECISION,
+    baseline_wind_speed_equator DOUBLE PRECISION,
+    baseline_wind_speed_pole DOUBLE PRECISION,
+    wind_direction_pattern TEXT,
+    max_wind_speed DOUBLE PRECISION,
+    has_storm_systems BOOLEAN,
+    corolis_effect_strength DOUBLE PRECISION,
+
+    -- Radiation constants
+    magnetosphere_strength DOUBLE PRECISION,
+    atmospheric_density_surface DOUBLE PRECISION,
+    ozone_layer_density DOUBLE PRECISION,
+    solar_radiation_constant DOUBLE PRECISION,
+    daytime_radiation_boost DOUBLE PRECISION,
+    nighttime_radiation_level DOUBLE PRECISION,
+    has_cosmic_ray_spikes BOOLEAN,
+
+    -- Chemical makeup
+    dominant_gas TEXT,
+    total_makeup JSONB, -- gas % breakdown
+    avg_surface_density DOUBLE PRECISION,
+    reactive_gas_present BOOLEAN,
+    chemical_volatility_rating INTEGER,
+    temperature_sensitive_gases TEXT[],
+    cloud_cover_percentage_avg DOUBLE PRECISION,
+    scale_height_km DOUBLE PRECISION,
+    tropopause_temp DOUBLE PRECISION,
+
+    -- Temperature
+    equator_avg_temp DOUBLE PRECISION,
+    pole_avg_temp DOUBLE PRECISION,
+    max_surface_temp DOUBLE PRECISION,
+    min_surface_temp DOUBLE PRECISION,
+    day_night_temp_delta DOUBLE PRECISION,
+    heat_capacity_atmosphere DOUBLE PRECISION,
+    latent_heat_effect DOUBLE PRECISION,
+
+    -- Magnetic field
+    has_magnetic_field BOOLEAN,
+    magnetic_field_strength DOUBLE PRECISION,
+    is_dipolar BOOLEAN,
+    has_auroras BOOLEAN,
+    has_atmosphere BOOLEAN,
+    escape_velocity DOUBLE PRECISION
+);
+
+INSERT INTO planet_static_data (
+    planet_name,
+
+    -- General
+    mass_kg, radius_km, surface_gravity_m_s2, albedo, mean_density_kg_m3,
+    orbital_period_days, rotation_period_hours, axial_tilt_deg, surface_roughness,
+    semi_major_axis_au, obliquity_variation_range, sidereal_day_hours,
+    electric_field_strength, charged_particle_flux, surface_type_dominance,
+
+    -- Wind
+    avg_surface_pressure, baseline_wind_speed_equator, baseline_wind_speed_pole,
+    wind_direction_pattern, max_wind_speed, has_storm_systems, corolis_effect_strength,
+
+    -- Radiation constants
+    magnetosphere_strength_nt, atmospheric_density_surface, ozone_layer_density,
+    solar_radiation_constant, daytime_radiation_boost, nighttime_radiation_level,
+    has_cosmic_ray_spikes,
+
+    -- Chemical makeup
+    dominant_gas, total_makeup, avg_surface_density, reactive_gas_present,
+    chemical_volatility_rating, temperature_sensitive_gases,
+    cloud_cover_percentage_avg, scale_height_km, tropopause_temp,
+
+    -- Temperature
+    equator_avg_temp, pole_avg_temp, max_surface_temp, min_surface_temp,
+    day_night_temp_delta, heat_capacity_atmosphere, latent_heat_effect,
+
+    -- Magnetic field
+    has_magnetic_field, magnetic_field_strength, is_dipolar, has_auroras,
+    has_atmosphere, escape_velocity
+) VALUES (
+    'Earth',
+
+    -- General
+    5.972e24, 6371, 9.807, 0.3, 5514,
+    365.25, 23.93, 23.44, 0.5,
+    1.0, 2.4, 23.93,
+    1.0, 1e8, 'rocky',
+
+    -- Wind
+    101.3, 20.0, 5.0,
+    'east-west', 120.0, TRUE, 0.5,
+
+    -- Radiation constants
+    3.0, 1.2, 0,
+    9126, 20000.0, 250.0,
+    TRUE,
+
+    -- Chemical makeup
+    'Nitrogen', '{"N2": 78.08, "O2": 20.95, "Ar": 0.93, "CO2": 0.04}'::jsonb, 1.2, TRUE,
+    2, ARRAY['CO2', 'H2O'],
+    65.0, 8.5, -56.5,
+
+    -- Temperature
+    288.0, 230.0, 330.0, 185.0,
+    10.0, 1.0e7, 2.5e6,
+
+    -- Magnetic field
+    TRUE, 0.5, TRUE, TRUE,
+    TRUE, 11186
+);
+VALUES (
+    'Mercury',
+
+    -- General --
+    3.3011e23, 2439.7, 3.7, 0.088, 5427,
+    87.969, 1407.5, 0.034, 0.22,
+    0.3871, +- 0.03, 1407.5,
+    300, 1e8, 'Silicate rock, impact basins, intercrater plains',
+
+    -- Wind --
+    0, 0, 0,
+    None, 0, FALSE, 0,
+
+    -- Radiation constants --
+    300, 1e-12, 0.3,
+    1361.0, 200.0, 50.0,
+    TRUE,
+
+    -- Chemical makeup --
+    'Oxygen', '{"Oxygen": 42.0, "Sodium": 29.0, "Hydrogen": 22.0, 
+    "Potassium": 6.0, "Helium": 1.0}'::jsonb, 1e5, TRUE,
+    9, ARRAY["Sodium", "Potassium", "Hydrogen"],
+    0, 100, NONE,
+
+    -- Temperature --
+    340.0, 200.0, 700.0, 100.0,
+    600.0, 1.0e7, 2.5e6,
+
+    -- Magnetic field --
+    TRUE, 300, TRUE, FALSE,
+    FALSE, 4.25
+); VALUES (
+    'Venus',
+
+    -- General --
+    4.8675e24, 6051.8, 8.87, .77, 5243,
+    224.701, -5832.5, 177.4, 0.3,
+    .7233, +-2.63, -5832.5,
+    25, 1e7, 'Basaltic volcanic plains, highland tesserae, impact craters',
+
+    -- Wind --
+    9.2, 2, 1.25,
+    'westward', 360, TRUE, 0.5,
+
+    -- Radiation constants --
+    0, 65, 0,
+    2611, 50, 50.0,
+    FALSE,
+
+    -- Chemical makeup --
+    'Carbon Dioxide', '{"Carbon Dioxide": 96.5, "Nitrogen": 3.5, "Sulfur Dioxide": 0.015,
+    "Water Vapor": 0.002, "Carbon Monoxide": 0.0015, "Argon": 0.007, "Helium": 0.0012, "Neon": 0.0007}'::jsonb, 
+    65, TRUE, 4, ARRAY["Sulfur Dioxide", "Water Vapor"],
+    100, 15.9, 230,
+
+    -- Temperature --
+    737.0, 737.0, 740.0, 735.0,
+    5.0, 1.0e10, 0,
+
+    -- Magnetic field --
+    FALSE, 10, FALSE, FALSE,
+    TRUE, 10.36
+); VALUES (
+    'Mars',
+
+    -- General --
+    6.4171e23, 3389.5, 3.721, 0.25, 3933,
+    686.98, 24.6229, 25.19, 0.35,
+    1.5237, 24, 24.6229,
+    3.5, 1e8, 'Basaltic plains, dust-covered highlands, polar ice caps',
+
+    -- Wind --
+    610, 10, 5.0,
+    'east-west', 60.0, TRUE, 0.2,
+
+    -- Radiation constants --
+    50, 0.02, 0.0001,
+    59-, 30, 30,
+    TRUE,
+
+    -- Chemical makeup --
+    'Carbon Dioxide', '{"Carbon Dioxide": 95.0, "Nitrogen": 2.7, "Argon": 1.6, 
+    "Oxygen": 0.13, "Carbon Monoxide": 0.07, "Water Vapor": 0.03, "Neon": 0.00025,
+    "Krypton": 0.00003}'::jsonb, .020, TRUE, 6, ARRAY["Water Vapor", "Carbon Monoxide", "Carbon Dioxide"],
+    20, 11.1, 130,
+
+    -- Temperature --
+    210.0, 150.0, 293.0, 130.0,
+    100, 2.0e9, 1.0e6,
+
+    -- Magnetic field --
+    FALSE, 1500, FALSE, TRUE,
+    TRUE, 5.03
+); VALUES (
+    'Jupiter',
+
+    -- General --
+    1.8982e27, 69911, 24.79, 0.503, 1326,
+    4332.59, 9.925, 3.13, 0,
+    5.2044, 0.03, 9.925,
+    5-15, 1e9, 'Gaseous (Hydrogen and Helium), with layered cloud bands',
+
+    -- Wind --
+    1 bar, 100-150, 50-80,
+    'alternate', 180-200, TRUE, very strong,
+
+    -- Radiation constants
+    3.0, 1.2, 0.3,
+    1361.0, 200.0, 50.0,
+    TRUE,
+
+    -- Chemical makeup
+    'Nitrogen', '{"N2": 78.08, "O2": 20.95, "Ar": 0.93, "CO2": 0.04}'::jsonb, 1.2, TRUE,
+    2, ARRAY['CO2', 'H2O'],
+    65.0, 8.5, -56.5,
+
+    -- Temperature
+    288.0, 230.0, 330.0, 185.0,
+    10.0, 1.0e7, 2.5e6,
+
+    -- Magnetic field
+    TRUE, 0.5, TRUE, TRUE,
+    TRUE, 11186
+); VALUES (
+    'Saturn',
+
+    -- General
+    5.972e24, 6371, 9.807, 0.3, 5514,
+    365.25, 23.93, 23.44, 0.5,
+    1.0, 2.4, 23.93,
+    1.0, 1e8, 'rocky',
+
+    -- Wind
+    101.3, 20.0, 5.0,
+    'east-west', 120.0, TRUE, 0.5,
+
+    -- Radiation constants
+    3.0, 1.2, 0.3,
+    1361.0, 200.0, 50.0,
+    TRUE,
+
+    -- Chemical makeup
+    'Nitrogen', '{"N2": 78.08, "O2": 20.95, "Ar": 0.93, "CO2": 0.04}'::jsonb, 1.2, TRUE,
+    2, ARRAY['CO2', 'H2O'],
+    65.0, 8.5, -56.5,
+
+    -- Temperature
+    288.0, 230.0, 330.0, 185.0,
+    10.0, 1.0e7, 2.5e6,
+
+    -- Magnetic field
+    TRUE, 0.5, TRUE, TRUE,
+    TRUE, 11186
+); VALUES (
+    'Uranus',
+
+    -- General
+    5.972e24, 6371, 9.807, 0.3, 5514,
+    365.25, 23.93, 23.44, 0.5,
+    1.0, 2.4, 23.93,
+    1.0, 1e8, 'rocky',
+
+    -- Wind
+    101.3, 20.0, 5.0,
+    'east-west', 120.0, TRUE, 0.5,
+
+    -- Radiation constants
+    3.0, 1.2, 0.3,
+    1361.0, 200.0, 50.0,
+    TRUE,
+
+    -- Chemical makeup
+    'Nitrogen', '{"N2": 78.08, "O2": 20.95, "Ar": 0.93, "CO2": 0.04}'::jsonb, 1.2, TRUE,
+    2, ARRAY['CO2', 'H2O'],
+    65.0, 8.5, -56.5,
+
+    -- Temperature
+    288.0, 230.0, 330.0, 185.0,
+    10.0, 1.0e7, 2.5e6,
+
+    -- Magnetic field
+    TRUE, 0.5, TRUE, TRUE,
+    TRUE, 11186
+); VALUES (
+    'Neptune',
+
+    -- General
+    5.972e24, 6371, 9.807, 0.3, 5514,
+    365.25, 23.93, 23.44, 0.5,
+    1.0, 2.4, 23.93,
+    1.0, 1e8, 'rocky',
+
+    -- Wind
+    101.3, 20.0, 5.0,
+    'east-west', 120.0, TRUE, 0.5,
+
+    -- Radiation constants
+    3.0, 1.2, 0.3,
+    1361.0, 200.0, 50.0,
+    TRUE,
+
+    -- Chemical makeup
+    'Nitrogen', '{"N2": 78.08, "O2": 20.95, "Ar": 0.93, "CO2": 0.04}'::jsonb, 1.2, TRUE,
+    2, ARRAY['CO2', 'H2O'],
+    65.0, 8.5, -56.5,
+
+    -- Temperature
+    288.0, 230.0, 330.0, 185.0,
+    10.0, 1.0e7, 2.5e6,
+
+    -- Magnetic field
+    TRUE, 0.5, TRUE, TRUE,
+    TRUE, 11186
+); VALUES (
+    'Pluto',
+
+    -- General
+    5.972e24, 6371, 9.807, 0.3, 5514,
+    365.25, 23.93, 23.44, 0.5,
+    1.0, 2.4, 23.93,
+    1.0, 1e8, 'rocky',
+
+    -- Wind
+    101.3, 20.0, 5.0,
+    'east-west', 120.0, TRUE, 0.5,
+
+    -- Radiation constants
+    3.0, 1.2, 0.3,
+    1361.0, 200.0, 50.0,
+    TRUE,
+
+    -- Chemical makeup
+    'Nitrogen', '{"N2": 78.08, "O2": 20.95, "Ar": 0.93, "CO2": 0.04}'::jsonb, 1.2, TRUE,
+    2, ARRAY['CO2', 'H2O'],
+    65.0, 8.5, -56.5,
+
+    -- Temperature
+    288.0, 230.0, 330.0, 185.0,
+    10.0, 1.0e7, 2.5e6,
+
+    -- Magnetic field
+    TRUE, 0.5, TRUE, TRUE,
+    TRUE, 11186
+);

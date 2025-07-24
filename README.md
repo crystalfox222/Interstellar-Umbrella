@@ -1,7 +1,7 @@
 # Interstellar-Umbrella
-A weather app that uses statistical forecasting to predict the weather on all planets within this solar system (excluding Pluto, justice for Pluto!!!).
+A weather app that uses statistical forecasting to predict the weather on all planets within this solar system.
 
-Welcome to Intersteller Umbrella, a weather app that uses statistical forecasting to predict the weather on all planets within this solar system (excluding Pluto, justice for Pluto!!!). We will ensure that you are prepared for whatever storm the universe blows your way!
+Welcome to Intersteller Umbrella, a weather app that uses statistical forecasting to predict the weather on all planets within this solar system. We will ensure that you are prepared for whatever storm the universe blows your way!
 
 #DISCLAIMER: While real data is used in each prediction, the findings are not valid scientific data. This app is entirely theorhetical and should only be used for entertainment purposes.
 

@@ -4,12 +4,14 @@ import astropy
 from skyfield.api import load as skyfield_load
 from datetime import datetime as date, timedelta, timezone
 import requests
-import planetdata
 import psycopg2
 import json
 import asyncpg
 import math
+"""
+This code is just the start of what i THOUGHT i was doing. nothing here is being used and its just here in case i need it
 
+"""
 class Planet:
     def __init__(self, name, mass, radius, distance_from_sun, orbital_period, atmosphere, surface_tempurature, location, tilt, albedo):
         self.name = name

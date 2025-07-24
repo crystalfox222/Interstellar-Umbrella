@@ -1,0 +1,12 @@
+scipy
+numpy
+pandas
+astropy
+skyfield
+requests
+psycopg2-binary
+asyncpg
+spiceypy
+matplotlib
+statsmodels
+datetime
